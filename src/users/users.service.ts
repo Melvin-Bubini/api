@@ -3,12 +3,12 @@ import { User } from "./user.model";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
-
+import { HttpException, HttpStatus } from "@nestjs/common";
 
 @Injectable()
 export class UsersService {
     constructor(
-        @InjectRepository(User)
+        @InjectRepository(User, 'usersConnection')
         private readonly userRepository: Repository<User>,
     ) {}
 
@@ -17,7 +17,7 @@ export class UsersService {
             const existingUser = await this.userRepository.findOne({ where: { email } });
     
             if (existingUser) {
-                throw new Error("E-postadressen är redan registrerad");
+                throw new HttpException("Användaren finns redan", HttpStatus.BAD_REQUEST);
             }
     
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,7 +25,7 @@ export class UsersService {
             return await this.userRepository.save(newUser);
         } catch (error) {
             console.error("Fel vid registrering:", error.message);
-            throw new Error("Något gick fel vid registrering");
+            throw new HttpException(error.message || "Något gick fel vid registrering", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
