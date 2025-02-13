@@ -48,7 +48,7 @@ export class ProductsController {
     ): Promise<any> {
         try {
             const updatedProduct = await this.productService.updateProduct(id, productData);
-            return res.status(HttpStatus.OK).json(updatedProduct);
+            return res.status(HttpStatus.OK).json({message: "Updaterade produkten: ", updatedProduct });
         } catch (error) {
             return res.status(error.status || 500).json({ message: error.message || "Något gick fel vid uppdatering av produkt" });
         }
@@ -62,7 +62,7 @@ export class ProductsController {
     ): Promise<any> {
         try {
             await this.productService.deleteProduct(id);
-            return res.status(HttpStatus.NO_CONTENT).send();
+            return res.status(HttpStatus.OK).json({message: "Produkten raderad"});
         } catch (error) {
             return res.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json({
                 message: error.message || "Kunde inte ta bort produkt",
