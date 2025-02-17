@@ -46,7 +46,7 @@ export class UsersController {
             const token = jwt.sign({ userId: user.id, email: user.email }, "jwt_token", { expiresIn: "1h" });
 
             res.cookie('jwt', token, { httpOnly: true, secure: false });
-            return res.status(200).json({ message: 'Inloggning lyckades', token });
+            return res.status(200).json({ message: 'Inloggning lyckades', token, user: { id: user.id, email: user.email, name: user.name } });
         } catch (error) {
             console.error("Fel vid inloggning:", error.message);
             throw new Error("Inloggning misslyckades");
