@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res } from "@nestjs/common";
+import { Controller, Post, Body, Res, Req, Get, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import * as jwt from "jsonwebtoken";
 import * as bcrypt from "bcrypt";
@@ -52,5 +52,41 @@ export class UsersController {
             throw new Error("Inloggning misslyckades");
         }
     }
+
+    @Get("validate")
+    async validateUser(
+        @Req() req: any,
+        @Res() res: Response
+    ): Promise<any> {
+        try {
+            // Läs token från Authorization-headern
+            const authHeader = req.headers.authorization;
+            if (!authHeader || !authHeader.startsWith("Bearer ")) {
+                throw new UnauthorizedException("Ingen token hittades");
+            }
+
+            const token = authHeader.split(" ")[1]; // Extrahera token
+            const secretKey = "jwt_token"; // Samma nyckel som vid inloggning
+
+            // Validera token
+            const decoded: any = jwt.verify(token, secretKey);
+            if (!decoded) {
+                throw new UnauthorizedException("Token är ogiltig");
+            }
+
+            // Hämta användaren från databasen
+            const user = await this.usersService.findUserById(decoded.userId);
+            if (!user) {
+                throw new UnauthorizedException("Användare ej hittad");
+            }
+
+            // Returnera användarens info
+            return res.status(200).json({ user });
+        } catch (error) {
+            console.error("Token valideringsfel:", error.message);
+            return res.status(401).json({ message: "Ogiltig token" });
+        }
+    }
+
 
 }
